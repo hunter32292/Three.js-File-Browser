@@ -101,6 +101,10 @@ handle_browse_request(struct request_t *r)
         fputs("HTTP/1.0 200 OK\r\n", r->socket);
         fputs("Content-Type: text/html\r\n", r->socket);        
         fputs("\r\n", r->socket);
+
+        // TODO: I'm going to add the function that will write the html and store the script for the three js code
+
+
         fputs("<html>\r\n", r->socket);
         for(int i = 0; i < n; i++){
             char tmp[BUFSIZ];
@@ -298,6 +302,52 @@ handle_error(struct request_t *r, http_status_t status)
     fputs("</html>\r\n", r->socket);
     /* Return specified status */
     return (status);
+}
+
+
+void write_file_to_browser(struct request_t *r){
+ 
+    char * line = NULL;
+    size_t length = 0;
+    ssize_t read;
+    File fp* = fopen("three/periodictable.html","r");
+
+    if (ifp == NULL) {
+        fprintf(stderr, "Could not open file\n");
+        exit(1);
+    }   
+
+    /*      HTML-HEADER-TAG        */
+    fputs("HTTP/1.0 200 OK\r\n", r->socket);
+    fputs("Content-Type: text/html\r\n", r->socket);        
+    fputs("\r\n", r->socket);
+
+
+    while ((read = getline(&line, &len, fp)) != -1) {    
+        printf("Retrieved line of length %zu :\n", read);
+        printf("%s", line);
+        fputs(line,r->socket);
+        if(strstr(line,"var table = [") != NULL){
+            write_individuel_files(r);
+        }
+
+    }
+
+
+}
+
+void write_individuel_files(struct request_t *r){
+
+        /*       WRITE FILES TO PAGE        */     
+        // Example file: JPG, FILENAME, FileSize, Modified, Created
+        for(int i = 0; i < n; i++){
+                char tmp[BUFSIZ];
+                snprintf(tmp, BUFSIZ, "<a href=\"/%s\">%s</a>", entries[i]->d_name, entries[i]->d_name);
+                fputs(tmp, r->socket);
+                //fputs(entries[i]->d_name, r->socket);
+                fputs("<br>", r->socket);
+        }
+
 }
 
 /* vim: set expandtab sts=4 sw=4 ts=8 ft=c: */
